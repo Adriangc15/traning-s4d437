@@ -2,8 +2,14 @@
 @EndUserText.label: 'Flight Travel Item (Projection View)'
 @Metadata.ignorePropagatedAnnotations: true
 @Metadata.allowExtensions: true
+@AbapCatalog.extensibility: {
+                              extensible: true,
+                              allowNewDatasources: false,
+                              dataSources: [ 'TravelItem' ],
+                              elementSuffix: 'Z12'
+                              }
 define view entity Z12_C_TRAVELITEM
-  as projection on Z12_R_TRAVELITEM
+  as projection on Z12_R_TRAVELITEM as TravelItem
 {
   key ItemUuid,
       AgencyId,

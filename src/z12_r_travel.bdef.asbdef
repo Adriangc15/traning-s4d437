@@ -1,8 +1,10 @@
 managed implementation in class zbp_12_r_travel unique;
 strict ( 2 );
 with draft;
+extensible;
+
 define behavior for Z12_R_TRAVEL alias Travel
-with additional save // To enable the raise of event on save action
+with additional save extensible  // To enable the raise of event on save action
 persistent table z12_travel ##UNMAPPED_FIELD //This is required due to there are calculated fields
 draft table z12_travel_d
 lock master
@@ -15,7 +17,7 @@ late numbering //Determine numbering on save action
   //--------------------------------------
   // MAPPING -----------------------------
   //--------------------------------------
-  mapping for z12_travel corresponding
+  mapping for z12_travel corresponding ##unextensible_mapping
     {
       AgencyId      = agency_id;
       TravelId      = travel_id;
@@ -30,7 +32,7 @@ late numbering //Determine numbering on save action
     }
 
 
-  create ( authorization : global );
+  create ( authorization : global ) ;
   update ( features : instance );
   //  delete;
   internal delete;
@@ -94,13 +96,13 @@ late numbering //Determine numbering on save action
 define behavior for Z12_R_TRAVELITEM alias TravelItem
 //persistent table z12_tritem
 //with additional save
-with unmanaged save  //Manage all the save actions create/update/delete
+with unmanaged save extensible  //Manage all the save actions create/update/delete
 draft table z12_tritem_d
 authorization dependent by _Travel
 lock dependent by _Travel
 etag master LocChangedAt
 {
-  mapping for z12_tritem corresponding
+  mapping for z12_tritem corresponding extensible
     {
       AgencyId           = agency_id;
       BookingId          = booking_id;
@@ -116,7 +118,7 @@ etag master LocChangedAt
       TravelId           = travel_id;
     }
 
-  mapping for /lrn/437_s_tritem control /lrn/437_s_tritemx corresponding
+  mapping for /lrn/437_s_tritem control /lrn/437_s_tritemx corresponding ##unextensible_mapping
     {
       AgencyId           = agency_id;
       BookingId          = booking_id;
