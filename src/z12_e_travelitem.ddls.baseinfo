@@ -3,14 +3,10 @@
 {
 "FROM":
 [
-"Z12_E_TRAVELITEM",
 "Z12_TRITEM"
 ],
 "ASSOCIATED":
-[
-"Z12_E_TRAVELITEM",
-"Z12_R_TRAVEL"
-],
+[],
 "BASE":
 [],
 "ANNO_REF":

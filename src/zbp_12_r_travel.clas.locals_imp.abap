@@ -82,30 +82,6 @@ CLASS lhc_travelitem IMPLEMENTATION.
     ENTITY Travel
     UPDATE FIELDS ( BeginDate EndDate )
     WITH CORRESPONDING #( travels ).
-*
-*      APPEND VALUE #( %tky = <travel_item>-%tky %state_area = c_area ) TO reported-travelitem
-*            ASSIGNING FIELD-SYMBOL(<result>).
-*
-*      IF <travel_item>-FlightDate IS INITIAL.
-*        "This is just to return the failed key
-*        APPEND CORRESPONDING #( <travel_item> ) TO failed-travelitem.
-*
-*        "This will return the failed field
-*        <result>-%msg = NEW /lrn/cm_s4d437( /lrn/cm_s4d437=>field_empty ).
-*        <result>-%element-flightdate = if_abap_behv=>mk-on.
-*        <result>-%path-travel = CORRESPONDING #( <travel_item> ).
-*
-*      ELSEIF <travel_item>-FlightDate < cl_abap_context_info=>get_system_date( ).
-*        "This is just to return the failed key
-*        APPEND CORRESPONDING #( <travel_item> ) TO failed-travelitem.
-*
-*        "This will return the failed field
-*        <result>-%msg = NEW /lrn/cm_s4d437( textid     = /lrn/cm_s4d437=>flight_date_past
-*                                            flightdate = <travel_item>-FlightDate ).
-*        <result>-%path-travel = CORRESPONDING #( <travel_item> ).
-*        <result>-%element-flightdate = if_abap_behv=>mk-on.
-*      ENDIF.
-*    ENDLOOP.
 
   ENDMETHOD.
 
@@ -146,18 +122,6 @@ CLASS lhc_travel_saver IMPLEMENTATION.
     ENDLOOP.
 
     LOOP AT create-travelitem ASSIGNING FIELD-SYMBOL(<item_c>).
-*      model->create_item( i_item = CORRESPONDING #( <item_c> MAPPING  agency_id            = AgencyId
-*                                                                      booking_id           = BookingId
-*                                                                      carrier_id           = CarrierId
-*                                                                      changed_at           = ChangedAt
-*                                                                      changed_by           = ChangedBy
-*                                                                      connection_id        = ConnectionId
-*                                                                      flight_date          = FlightDate
-*                                                                      loc_changed_at       = LocChangedAt
-*                                                                      passenger_first_name = PassengerFirstName
-*                                                                      passenger_last_name  = PassengerLastName
-*                                                                      travel_id            = TravelId
-*                                                                      item_uuid            = ItemUuid ) ).
       DATA(msg_c) = model->create_item( i_item = CORRESPONDING #( <item_c> MAPPING FROM ENTITY ) ). "This will read the mapping from the bahavior
       IF msg_c IS NOT INITIAL.
         APPEND VALUE #( %tky-ItemUuid = <item_c>-ItemUuid
@@ -165,10 +129,10 @@ CLASS lhc_travel_saver IMPLEMENTATION.
       ENDIF.
 
       IF create-travel IS NOT INITIAL.
-
         RAISE ENTITY EVENT z12_r_travel~travelCreated
-            FROM CORRESPONDING #( create-travel ).
-
+            FROM VALUE #( FOR <new_travel> IN create-travel
+                            ( %key   = <new_travel>-%key
+                              origin = 'Z12_R_TRAVEL' ) ).
       ENDIF.
 
     ENDLOOP.

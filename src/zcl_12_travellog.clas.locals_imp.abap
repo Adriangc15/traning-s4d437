@@ -12,13 +12,7 @@ CLASS lhc_handler IMPLEMENTATION.
   METHOD ontravelcreated.
     DATA: logs TYPE TABLE FOR CREATE /LRN/437_I_TravelLog.
 
-    LOOP AT i_created_travels ASSIGNING FIELD-SYMBOL(<travel_c>).
-
-      APPEND VALUE #( agencyid = <travel_c>-AgencyId
-                      travelid = <travel_c>-TravelId
-                      origin   = 'Z12_R_TRAVEL' ) TO logs.
-
-    ENDLOOP.
+    logs = CORRESPONDING #( i_created_travels ).
 
     MODIFY ENTITIES OF /LRN/437_I_TravelLog
         ENTITY TravelLog

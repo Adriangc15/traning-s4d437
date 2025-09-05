@@ -72,7 +72,7 @@ late numbering //Determine numbering on save action
 
   association _TravelItem { create; with draft; }
 
-  event travelCreated;
+  event travelCreated parameter Z12_A_EVENT;
 
 
   //Draft Actions
