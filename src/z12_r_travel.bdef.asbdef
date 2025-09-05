@@ -1,0 +1,147 @@
+managed implementation in class zbp_12_r_travel unique;
+strict ( 2 );
+with draft;
+define behavior for Z12_R_TRAVEL alias Travel
+with additional save // To enable the raise of event on save action
+persistent table z12_travel ##UNMAPPED_FIELD //This is required due to there are calculated fields
+draft table z12_travel_d
+lock master
+total etag ChangedAt //Used for the draft etag
+authorization master ( instance )
+etag master LastChangedAt // Used for the active version
+//early numbering //Determine numbering on create
+late numbering //Determine numbering on save action
+{
+  //--------------------------------------
+  // MAPPING -----------------------------
+  //--------------------------------------
+  mapping for z12_travel corresponding
+    {
+      AgencyId      = agency_id;
+      TravelId      = travel_id;
+      Description   = description;
+      CustomerId    = customer_id;
+      BeginDate     = begin_date;
+      EndDate       = end_date;
+      Status        = status;
+      ChangedAt     = changed_at;
+      ChangedBy     = changed_by;
+      LastChangedAt = loc_changed_at;
+    }
+
+
+  create ( authorization : global );
+  update ( features : instance );
+  //  delete;
+  internal delete;
+
+  //Definition of Read Only Fields
+  field ( readonly ) TravelId, AgencyId, Status, ChangedAt, ChangedBy, LastChangedAt, DurationDays; //Read only allways
+  //  field ( readonly : update ) TravelId, AgencyId; // Read only when update
+  field ( features : instance ) CustomerId, BeginDate;
+
+  //Definition of Mandatory Only Fields
+  field ( mandatory ) Description, BeginDate, EndDate, CustomerId;
+  //  field ( mandatory : create ) TravelId, AgencyId;
+
+  //Actions
+  action ( features : instance ) cancel_travel;
+
+  //Validations
+  validation validateDescription on save { create; update; }
+  validation validateCustomer on save { create; field CustomerId; }
+  validation validateBeginDate on save { create; field BeginDate; }
+  validation validateEndDate on save { create; field EndDate; }
+  validation validateSequence on save { create; field BeginDate, EndDate; }
+
+  //Determinations
+  determination determineStatus on modify { create; }
+  determination determineDuration on save { field BeginDate, EndDate; }
+  determine action checkCustomer
+  {
+    validation validateCustomer;
+  }
+
+  determine action adjustDuration
+  {
+    determination determineDuration;
+    validation validateBeginDate;
+    validation validateEndDate;
+    validation validateSequence;
+  }
+
+  association _TravelItem { create; with draft; }
+
+  event travelCreated;
+
+
+  //Draft Actions
+  draft action Edit;
+  draft action Activate optimized; //Dont double run the validations that already heppened with optimized, avoid if backend data can be changed in the meantime
+  draft action Resume;
+  draft action Discard;
+  draft determine action Prepare //Prepare data from draft to active (validations)
+  { //Execute all this validations even on draft version
+    validation validateDescription;
+    validation validateCustomer;
+    validation validateBeginDate;
+    validation validateEndDate;
+    validation validateSequence;
+    validation TravelItem~validateFlightDate;
+  }
+}
+
+define behavior for Z12_R_TRAVELITEM alias TravelItem
+//persistent table z12_tritem
+//with additional save
+with unmanaged save  //Manage all the save actions create/update/delete
+draft table z12_tritem_d
+authorization dependent by _Travel
+lock dependent by _Travel
+etag master LocChangedAt
+{
+  mapping for z12_tritem corresponding
+    {
+      AgencyId           = agency_id;
+      BookingId          = booking_id;
+      CarrierId          = carrier_id;
+      ChangedAt          = changed_at;
+      ChangedBy          = changed_by;
+      ConnectionId       = connection_id;
+      FlightDate         = flight_date;
+      ItemUuid           = item_uuid;
+      LocChangedAt       = loc_changed_at;
+      PassengerFirstName = passenger_first_name;
+      PassengerLastName  = passenger_last_name;
+      TravelId           = travel_id;
+    }
+
+  mapping for /lrn/437_s_tritem control /lrn/437_s_tritemx corresponding
+    {
+      AgencyId           = agency_id;
+      BookingId          = booking_id;
+      CarrierId          = carrier_id;
+      ChangedAt          = changed_at;
+      ChangedBy          = changed_by;
+      ConnectionId       = connection_id;
+      FlightDate         = flight_date;
+      ItemUuid           = item_uuid;
+      LocChangedAt       = loc_changed_at;
+      PassengerFirstName = passenger_first_name;
+      PassengerLastName  = passenger_last_name;
+      TravelId           = travel_id;
+    }
+
+
+  delete;
+  update;
+
+  field ( mandatory ) FlightDate;
+  field ( readonly, numbering : managed ) ItemUuid;
+  field ( readonly ) AgencyId, TravelId;
+  association _Travel { with draft; }
+  validation validateFlightDate on save { create; field FlightDate; }
+  determination determineTravelDates on save { field FlightDate; }
+
+  determine action checkFlightDate { validation validateFlightDate; determination determineTravelDates; }
+}

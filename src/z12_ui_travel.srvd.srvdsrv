@@ -1,0 +1,5 @@
+@EndUserText.label: 'Flight travel (Service definition)'
+define service Z12_UI_TRAVEL {
+  expose Z12_C_TRAVEL     as Travel;
+  expose Z12_C_TRAVELITEM as TravelItem;
+}

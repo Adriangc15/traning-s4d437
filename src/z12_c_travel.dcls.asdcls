@@ -1,0 +1,11 @@
+@EndUserText.label: 'Flight Travel Access Projection'
+@MappingRole: true
+define role Z12_C_TRAVEL {
+    grant
+        select
+            on
+                Z12_C_TRAVEL
+                    where
+                        inheriting conditions from entity Z12_R_TRAVEL;
+                        
+}

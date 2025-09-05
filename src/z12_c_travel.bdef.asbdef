@@ -1,0 +1,43 @@
+projection;
+strict ( 2 );
+use draft;
+use side effects;
+define behavior for Z12_C_TRAVEL alias Travel
+use etag
+{
+  use create;
+  use update;
+  //  use delete;
+  use action cancel_travel as cancel;
+
+  use association _TravelItem { create; with draft; }
+
+  //Draft actions
+  use action Edit;
+  use action Activate;
+  use action Discard;
+  use action Resume;
+  use action Prepare;
+  use action checkCustomer;
+  use action adjustDuration;
+
+  //Side effects
+  side effects
+  {
+    determine action checkCustomer executed on field CustomerId affects messages;
+    determine action adjustDuration executed on field BeginDate, field EndDate affects field DurationDays;
+  }
+}
+
+define behavior for Z12_C_TRAVELITEM alias TravelItem
+use etag
+{
+  use update;
+  use delete;
+  use association _Travel { with draft; }
+  use action checkFlightDate;
+  side effects
+  {
+    determine action checkFlightDate executed on field FlightDate affects field _Travel.EndDate, field _Travel.BeginDate;
+  }
+}
